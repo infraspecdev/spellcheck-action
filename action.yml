@@ -1,0 +1,51 @@
+name: 'Spell Check and Grammar Check Action'
+description: 'A GitHub Action to check spelling and grammar in markdown files using OpenAI GPT-4, posting comments on pull requests.'
+
+author: 'RR'
+branding:
+  color: 'green'
+  icon: 'cloud-lightning'
+
+inputs:
+  openai_api_key:
+    description: 'OpenAI API Key'
+    required: true
+    type: string
+
+  github_repository:
+    description: 'The name of the GitHub repository'
+    required: true
+    type: string
+
+  github_token:
+    description: 'GitHub Token to post comments on the pull request'
+    required: true
+    type: string
+
+  openai_model:
+    description: 'OpenAI model to be used for spelling and grammar check'
+    default: "gpt-4o"
+    type: string
+
+  model_max_token:
+    description: 'Max token to be assigned to the model'
+    default: 16000
+    type: number
+
+  pr_number:
+    description: 'Pull request number where comments will be posted'
+    required: true
+    type: string
+
+  files:
+    description: 'Comma-separated list of markdown files to check for spelling and grammar'
+    required: true
+    type: string
+
+runs:
+  using: 'docker'
+  image: 'Dockerfile'
+
+permissions:
+  contents: read
+  pull-requests: write
