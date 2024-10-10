@@ -67,7 +67,7 @@ class SpellChecker:
                         f"{''.join(numbered_content)}"
                     )}
                 ],
-                max_tokens=os.getenv("INPUT_MODEL_MAX_TOKEN")
+                max_tokens=int(os.getenv("INPUT_MODEL_MAX_TOKEN"))
             )
             return response['choices'][0]['message']['content']
         except Exception as e:
