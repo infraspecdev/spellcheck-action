@@ -63,12 +63,12 @@ class FileHandler:
 class SpellChecker:
     def __init__(self, config):
         self.config = config
-        openai.api_key = config['api_key'] 
+        openai.api_key = config.openai['api_key'] 
 
     def check_spelling_with_line_numbers(self, numbered_content):
         try:
             response = openai.ChatCompletion.create(
-                model=self.config['model'],
+                model=self.config.openai['model'],
                 messages=[
                     {"role": "system", "content": "You are a helpful assistant checking spelling and grammar."},
                     {"role": "user", "content": (
@@ -86,7 +86,7 @@ class SpellChecker:
                         f"{''.join(numbered_content)}"
                     )}
                 ],
-                max_tokens=int(config['max_tokens'])
+                max_tokens=int(self.config.openai['max_tokens'])
             )
             return response['choices'][0]['message']['content']
         except Exception as e:
@@ -149,7 +149,7 @@ class GitHubPRCommenter:
 class SpellCheckProcessor:
     def __init__(self, config):
         self.config = config
-        self.spell_checker = SpellChecker(config.openai)
+        self.spell_checker = SpellChecker(config)
         self.has_issues = False
         self.commenter = GitHubPRCommenter(self.config.github['repository'], self.config.github['pr_number'], self.config.github['token'])
 
