@@ -112,6 +112,17 @@ class GitHubPRCommenter:
             "Accept": "application/vnd.github.v3+json"
         }
 
+class GitHubPRCommenter:
+    def __init__(self, repo, pr_number, token):
+        self.repo = repo
+        self.pr_number = pr_number
+        self.token = token
+        self.api_url = f"https://api.github.com/repos/{self.repo}/pulls/{self.pr_number}/comments"
+        self.headers = {
+            "Authorization": f"Bearer {self.token}",
+            "Accept": "application/vnd.github.v3+json"
+        }
+
     def post_comment(self, file_path, line_number, message):
         commit_id = self.get_latest_commit()
         if not commit_id:
@@ -140,19 +151,25 @@ class GitHubPRCommenter:
             logging.error(f"Failed to get latest commit SHA: {response.status_code} - {response.text}")
             return None
 
-    def delete_existing_comments(self):
+    def mark_existing_comments_as_resolved(self):
         comments_url = f"https://api.github.com/repos/{self.repo}/pulls/{self.pr_number}/comments"
         response = requests.get(comments_url, headers=self.headers)
         if response.status_code == 200:
-            for comment in response.json():
-                delete_url = f"https://api.github.com/repos/{self.repo}/pulls/comments/{comment['id']}"
-                delete_response = requests.delete(delete_url, headers=self.headers)
-                if delete_response.status_code == 204:
-                    logging.info(f"Deleted comment ID {comment['id']}.")
-                else:
-                    logging.error(f"Failed to delete comment ID {comment['id']}: {delete_response.status_code} - {delete_response.text}")
+            comments = response.json()
+            for comment in comments:
+                if comment['user']['login'] == 'github-actions[bot]': 
+                    resolved_url = f"https://api.github.com/repos/{self.repo}/issues/comments/{comment['id']}/reactions"
+                    reaction_data = {
+                        "content": "rocket"  
+                    }
+                    reaction_response = requests.post(resolved_url, headers=self.headers, json=reaction_data)
+                    if reaction_response.status_code == 200:
+                        logging.info(f"Marked comment ID {comment['id']} as resolved.")
+                    else:
+                        logging.error(f"Failed to mark comment ID {comment['id']} as resolved: {reaction_response.status_code} - {reaction_response.text}")
         else:
             logging.error(f"Failed to get comments: {response.status_code} - {response.text}")
+
 
 class SpellCheckProcessor:
     def __init__(self, config):
@@ -165,7 +182,7 @@ class SpellCheckProcessor:
         return [f"{idx + 1}: {line.rstrip()}\n" for idx, line in enumerate(lines)]
 
     def process_files(self):
-        self.commenter.delete_existing_comments()
+        self.commenter.mark_existing_comments_as_resolved()
         for file_path in self.config.github['files']:
             file_lines = FileHandler.read_file(file_path)
             if file_lines:
