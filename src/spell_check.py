@@ -68,7 +68,7 @@ class SpellChecker:
     def check_spelling_with_line_numbers(self, numbered_content):
         try:
             response = openai.ChatCompletion.create(
-                model=config['model'],
+                model=self.config['model'],
                 messages=[
                     {"role": "system", "content": "You are a helpful assistant checking spelling and grammar."},
                     {"role": "user", "content": (
