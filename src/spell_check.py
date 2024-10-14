@@ -5,6 +5,37 @@ import logging
 import json
 import requests
 
+class Config:
+    def __init__(self):
+        self.github = {
+            "repository": os.getenv("INPUT_GITHUB_REPOSITORY"),
+            "token": os.getenv("INPUT_GITHUB_TOKEN"),
+            "pr_number": os.getenv("INPUT_PR_NUMBER"),
+            "files": os.getenv("INPUT_FILES").split(',')
+        }
+        self.spell_check = {
+            "failOnSpelling": os.getenv("INPUT_FAIL_ON_SPELLING"),
+            "failOnGrammar": os.getenv("INPUT_FAIL_ON_GRAMMAR"),
+            "failOnBoth": os.getenv("INPUT_FAIL_ON_BOTH")
+        }
+        self.openai = {
+            "api_key": os.getenv("INPUT_OPENAI_API_KEY"),
+            "model": os.getenv("INPUT_OPENAI_MODEL"),
+            "max_tokens": int(os.getenv("INPUT_MODEL_MAX_TOKEN"))
+        }
+        self.validate()
+
+    def validate(self):
+        if not all(self.github.values()):
+            logging.error("GITHUB_REPOSITORY, GITHUB_TOKEN, PR_NUMBER, and INPUT_FILES must be set as environment variables.")
+            sys.exit(1)
+        if not all(self.spell_check.values()):
+            logging.error("FAIL_ON_SPELLING, FAIL_ON_GRAMMAR & FAIL_ON_BOTH must be set as environment variables.")
+            sys.exit(1)
+        if not all(self.openai.values()):
+            logging.error("OPENAI_API_KEY, OPENAI_MODEL & MODEL_MAX_TOKEN must be set as environment variables.")
+            sys.exit(1)
+
 class Logger:
     @staticmethod
     def configure(log_level=None):
@@ -177,35 +208,4 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-
-class Config:
-    def __init__(self):
-        self.github = {
-            "repository": os.getenv("INPUT_GITHUB_REPOSITORY"),
-            "token": os.getenv("INPUT_GITHUB_TOKEN"),
-            "pr_number": os.getenv("INPUT_PR_NUMBER"),
-            "files": os.getenv("INPUT_FILES").split(',')
-        }
-        self.spell_check = {
-            "failOnSpelling": os.getenv("INPUT_FAIL_ON_SPELLING"),
-            "failOnGrammar": os.getenv("INPUT_FAIL_ON_GRAMMAR"),
-            "failOnBoth": os.getenv("INPUT_FAIL_ON_BOTH")
-        }
-        self.openai = {
-            "api_key": os.getenv("INPUT_OPENAI_API_KEY"),
-            "model": os.getenv("INPUT_OPENAI_MODEL"),
-            "max_tokens": int(os.getenv("INPUT_MODEL_MAX_TOKEN"))
-        }
-        self.validate()
-
-    def validate(self):
-        if not all(self.github.values()):
-            logging.error("GITHUB_REPOSITORY, GITHUB_TOKEN, PR_NUMBER, and INPUT_FILES must be set as environment variables.")
-            sys.exit(1)
-        if not all(self.spell_check.values()):
-            logging.error("FAIL_ON_SPELLING, FAIL_ON_GRAMMAR & FAIL_ON_BOTH must be set as environment variables.")
-            sys.exit(1)
-        if not all(self.openai.values()):
-            logging.error("OPENAI_API_KEY, OPENAI_MODEL & MODEL_MAX_TOKEN must be set as environment variables.")
-            sys.exit(1)
+    
