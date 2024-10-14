@@ -119,12 +119,13 @@ class GitHubPRCommenter:
             logging.error(f"Failed to get comments: {response.status_code} - {response.text}")
 
 class SpellCheckProcessor:
-    def __init__(self, file_paths):
+    def __init__(self, file_paths, config):
         self.file_paths = file_paths
         self.spell_checker = SpellChecker()
         self.repo = os.getenv("INPUT_GITHUB_REPOSITORY")
         self.pr_number = os.getenv("INPUT_PR_NUMBER")
         self.token = os.getenv("INPUT_GITHUB_TOKEN")
+        self.config = config
         self.has_issues = False
         if not all([self.repo, self.pr_number, self.token]):
             logging.error("GITHUB_REPOSITORY, PR_NUMBER, and GITHUB_TOKEN must be set as environment variables.")
@@ -166,13 +167,16 @@ class SpellCheckProcessor:
                     category = entry.get("category")
                     original_text = entry.get("original_text")
                     suggested_text = entry.get("suggested_text")
-                    if category in ["spelling issue", "both"]:
-                        self.has_issues = True
-                        message = f"**{category.capitalize()}**: `{original_text}`\n**Suggestion**: `{suggested_text}`"
-                        self.commenter.post_comment(file_path, line_number, message)
+                    message = f"**{category.capitalize()}**: `{original_text}`\n**Suggestion**: `{suggested_text}`"
+                    self.commenter.post_comment(file_path, line_number, message)
+                    
+                    if category == "spelling issue":
+                        self.has_issues = self.config["failOnSpelling"]
                     elif category == "grammar issue":
-                        message = f"**{category.capitalize()}**: `{original_text}`\n**Suggestion**: `{suggested_text}`"
-                        self.commenter.post_comment(file_path, line_number, message)
+                        self.has_issues = self.config["failOnGrammar"]
+                    elif category == "both":
+                        self.has_issues = self.config["failOnBoth"]
+
                 return self.has_issues
             else:
                 return False
@@ -180,9 +184,14 @@ class SpellCheckProcessor:
             return False
 
 def main():
+    config = {
+        "failOnSpelling": True,
+        "failOnGrammar": False,
+        "failOnBoth": True
+    }
     Logger.configure()
     input_files = os.getenv("INPUT_FILES").split(',')
-    processor = SpellCheckProcessor(input_files)
+    processor = SpellCheckProcessor(input_files, config)
     processor.process_files()
 
 if __name__ == "__main__":
