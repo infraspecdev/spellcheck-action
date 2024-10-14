@@ -42,6 +42,21 @@ inputs:
     required: true
     type: string
 
+  fail_on_spelling:
+    description: 'Fail the PR if any spelling errors are found'
+    default: true
+    type: boolean
+
+  fail_on_grammar:
+    description: 'Fail the PR if any grammar errors are found'
+    default: false
+    type: boolean
+
+  fail_on_both:
+    description: 'Fail the PR if both spelling and grammar errors are found'
+    default: true
+    type: boolean
+
 runs:
   using: 'docker'
   image: 'Dockerfile'

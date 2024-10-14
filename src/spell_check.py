@@ -30,17 +30,14 @@ class FileHandler:
             return None
 
 class SpellChecker:
-    def __init__(self):
-        self.api_key = os.getenv("INPUT_OPENAI_API_KEY")
-        if not self.api_key:
-            logging.error("OPENAI_API_KEY environment variable not set.")
-            sys.exit(1)
-        openai.api_key = self.api_key
+    def __init__(self, config):
+        self.config = config
+        openai.api_key = config['api_key'] 
 
     def check_spelling_with_line_numbers(self, numbered_content):
         try:
             response = openai.ChatCompletion.create(
-                model=os.getenv("INPUT_OPENAI_MODEL"),
+                model=config['model'],
                 messages=[
                     {"role": "system", "content": "You are a helpful assistant checking spelling and grammar."},
                     {"role": "user", "content": (
@@ -58,7 +55,7 @@ class SpellChecker:
                         f"{''.join(numbered_content)}"
                     )}
                 ],
-                max_tokens=int(os.getenv("INPUT_MODEL_MAX_TOKEN"))
+                max_tokens=int(config['max_tokens'])
             )
             return response['choices'][0]['message']['content']
         except Exception as e:
@@ -119,25 +116,18 @@ class GitHubPRCommenter:
             logging.error(f"Failed to get comments: {response.status_code} - {response.text}")
 
 class SpellCheckProcessor:
-    def __init__(self, file_paths, config):
-        self.file_paths = file_paths
-        self.spell_checker = SpellChecker()
-        self.repo = os.getenv("INPUT_GITHUB_REPOSITORY")
-        self.pr_number = os.getenv("INPUT_PR_NUMBER")
-        self.token = os.getenv("INPUT_GITHUB_TOKEN")
+    def __init__(self, config):
         self.config = config
+        self.spell_checker = SpellChecker(config.openai)
         self.has_issues = False
-        if not all([self.repo, self.pr_number, self.token]):
-            logging.error("GITHUB_REPOSITORY, PR_NUMBER, and GITHUB_TOKEN must be set as environment variables.")
-            sys.exit(1)
-        self.commenter = GitHubPRCommenter(self.repo, self.pr_number, self.token)
+        self.commenter = GitHubPRCommenter(self.config.github['repository'], self.config.github['pr_number'], self.config.github['token'])
 
     def inject_line_numbers(self, lines):
         return [f"{idx + 1}: {line.rstrip()}\n" for idx, line in enumerate(lines)]
 
     def process_files(self):
         self.commenter.delete_existing_comments()
-        for file_path in self.file_paths:
+        for file_path in self.config.github['files']:
             file_lines = FileHandler.read_file(file_path)
             if file_lines:
                 numbered_content = self.inject_line_numbers(file_lines)
@@ -170,25 +160,52 @@ class SpellCheckProcessor:
                 message = f"**{category.capitalize()}**: `{original_text}`\n**Suggestion**: `{suggested_text}`"
                 self.commenter.post_comment(file_path, line_number, message)
 
-                if category == "spelling issue" and self.config["failOnSpelling"]:
+                if category == "spelling issue" and self.config.spell_check["failOnSpelling"]:
                     self.has_issues = True
-                elif category == "grammar issue" and self.config["failOnGrammar"]:
+                elif category == "grammar issue" and self.config.spell_check["failOnGrammar"]:
                     self.has_issues = True
-                elif category == "both" and self.config["failOnBoth"]:
+                elif category == "both" and self.config.spell_check["failOnBoth"]:
                     self.has_issues = True
         except json.JSONDecodeError:
             logging.error(f"Failed to decode JSON: {e}")
 
 def main():
-    config = {
-        "failOnSpelling": True,
-        "failOnGrammar": False,
-        "failOnBoth": True
-    }
     Logger.configure()
-    input_files = os.getenv("INPUT_FILES").split(',')
-    processor = SpellCheckProcessor(input_files, config)
+    config = Config()
+    processor = SpellCheckProcessor(config)
     processor.process_files()
 
 if __name__ == "__main__":
     main()
+
+
+class Config:
+    def __init__(self):
+        self.github = {
+            "repository": os.getenv("INPUT_GITHUB_REPOSITORY"),
+            "token": os.getenv("INPUT_GITHUB_TOKEN"),
+            "pr_number": os.getenv("INPUT_PR_NUMBER"),
+            "files": os.getenv("INPUT_FILES").split(',')
+        }
+        self.spell_check = {
+            "failOnSpelling": os.getenv("INPUT_FAIL_ON_SPELLING"),
+            "failOnGrammar": os.getenv("INPUT_FAIL_ON_GRAMMAR"),
+            "failOnBoth": os.getenv("INPUT_FAIL_ON_BOTH")
+        }
+        self.openai = {
+            "api_key": os.getenv("INPUT_OPENAI_API_KEY"),
+            "model": os.getenv("INPUT_OPENAI_MODEL"),
+            "max_tokens": int(os.getenv("INPUT_MODEL_MAX_TOKEN"))
+        }
+        self.validate()
+
+    def validate(self):
+        if not all(self.github.values()):
+            logging.error("GITHUB_REPOSITORY, GITHUB_TOKEN, PR_NUMBER, and INPUT_FILES must be set as environment variables.")
+            sys.exit(1)
+        if not all(self.spell_check.values()):
+            logging.error("FAIL_ON_SPELLING, FAIL_ON_GRAMMAR & FAIL_ON_BOTH must be set as environment variables.")
+            sys.exit(1)
+        if not all(self.openai.values()):
+            logging.error("OPENAI_API_KEY, OPENAI_MODEL & MODEL_MAX_TOKEN must be set as environment variables.")
+            sys.exit(1)
