@@ -46,7 +46,7 @@ class Logger:
         self.config = config
         self.configure()
     
-    def configure():
+    def configure(self):
         log_level = self.config.log['log_level']
         levels = {
             "DEBUG": logging.DEBUG,
