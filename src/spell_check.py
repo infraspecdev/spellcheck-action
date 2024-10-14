@@ -17,6 +17,7 @@ class Config:
             "failOnSpelling": self.str_to_bool(os.getenv("INPUT_FAIL_ON_SPELLING")),
             "failOnGrammar": self.str_to_bool(os.getenv("INPUT_FAIL_ON_GRAMMAR")),
             "failForAll": self.str_to_bool(os.getenv("INPUT_FAIL_FOR_ALL"))
+            "default_language": os.getenv("INPUT_DEFAULT_LANGUAGE")
         }
         self.openai = {
             "api_key": os.getenv("INPUT_OPENAI_API_KEY"),
@@ -82,6 +83,7 @@ class SpellChecker:
                     {"role": "user", "content": (
                         "You are a helpful assistant that checks and corrects only spelling and grammar issues in markdown files, "
                         "without altering any other content such as indentation, line numbers, or formatting.\n"
+                        f"Assume the default language is {self.config.spell_check['default_language']}.\n"
                         "For each line provided, identify the specific word with the issue and provide its correction.\n"
                         "Return a JSON object with the following fields only if the category is not 'none':\n"
                         "- original_text: contains only the specific word in the line that has a spelling or grammar issue\n"
