@@ -23,6 +23,9 @@ class Config:
             "model": os.getenv("INPUT_OPENAI_MODEL"),
             "max_tokens": int(os.getenv("INPUT_MODEL_MAX_TOKEN"))
         }
+        self.log = {
+            "log_level": os.getenv("INPUT_LOG_LEVEL")
+        }
         self.validate()
     
     def str_to_bool(self, value):
@@ -39,9 +42,12 @@ class Config:
             sys.exit(1)
 
 class Logger:
-    @staticmethod
-    def configure(log_level=None):
-        log_level = log_level or os.getenv("LOG_LEVEL", "ERROR").upper()
+    def __init__(self,config):
+        self.config = config
+        self.configure()
+    
+    def configure():
+        log_level = self.config.log['log_level']
         levels = {
             "DEBUG": logging.DEBUG,
             "INFO": logging.INFO,
@@ -203,8 +209,8 @@ class SpellCheckProcessor:
             logging.error(f"Failed to decode JSON: {e}")
 
 def main():
-    Logger.configure()
     config = Config()
+    Logger(config)
     processor = SpellCheckProcessor(config)
     processor.process_files()
 

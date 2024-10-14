@@ -57,6 +57,11 @@ inputs:
     default: true
     type: boolean
 
+  log_level:
+    description: 'Log level for the action (e.g., DEBUG, INFO, WARN, ERROR)'
+    default: "ERROR"
+    type: string
+
 runs:
   using: 'docker'
   image: 'Dockerfile'
