@@ -16,7 +16,7 @@ class Config:
         self.spell_check = {
             "failOnSpelling": self.str_to_bool(os.getenv("INPUT_FAIL_ON_SPELLING")),
             "failOnGrammar": self.str_to_bool(os.getenv("INPUT_FAIL_ON_GRAMMAR")),
-            "failOnBoth": self.str_to_bool(os.getenv("INPUT_FAIL_ON_BOTH"))
+            "failForAll": self.str_to_bool(os.getenv("INPUT_FAIL_FOR_ALL"))
         }
         self.openai = {
             "api_key": os.getenv("INPUT_OPENAI_API_KEY"),
@@ -203,7 +203,7 @@ class SpellCheckProcessor:
                     self.has_issues = True
                 elif category == "grammar issue" and self.config.spell_check["failOnGrammar"]:
                     self.has_issues = True
-                elif category == "both" and self.config.spell_check["failOnBoth"]:
+                elif category == "both" and self.config.spell_check["failForAll"]:
                     self.has_issues = True
         except json.JSONDecodeError:
             logging.error(f"Failed to decode JSON: {e}")

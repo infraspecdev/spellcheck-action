@@ -52,7 +52,7 @@ inputs:
     default: false
     type: boolean
 
-  fail_on_both:
+  fail_for_all:
     description: 'Fail the PR if both spelling and grammar errors are found'
     default: true
     type: boolean
