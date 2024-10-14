@@ -143,9 +143,7 @@ class SpellCheckProcessor:
                 numbered_content = self.inject_line_numbers(file_lines)
                 result = self.spell_checker.check_spelling_with_line_numbers(numbered_content)
                 if result:
-                    issues_found = self.post_inline_comments(result, file_path)
-                    if issues_found:
-                        self.has_issues = True
+                    self.post_inline_comments(result, file_path)
             else:
                 logging.error(f"Skipping file {file_path} due to read error.")
         self.check_pr_status()
@@ -159,29 +157,27 @@ class SpellCheckProcessor:
     def post_inline_comments(self, result, file_path):
         try:
             result_json = json.loads(result.strip('```json\n```'))
-            if isinstance(result_json, list):
-                for entry in result_json:
-                    if "message" in entry:
-                        continue
-                    line_number = entry.get("line_number")
-                    category = entry.get("category")
-                    original_text = entry.get("original_text")
-                    suggested_text = entry.get("suggested_text")
-                    message = f"**{category.capitalize()}**: `{original_text}`\n**Suggestion**: `{suggested_text}`"
-                    self.commenter.post_comment(file_path, line_number, message)
-                    
-                    if category == "spelling issue":
-                        self.has_issues = self.config["failOnSpelling"]
-                    elif category == "grammar issue":
-                        self.has_issues = self.config["failOnGrammar"]
-                    elif category == "both":
-                        self.has_issues = self.config["failOnBoth"]
+            if not isinstance(result_json, list):
+                logging.error("Result is not a list of issues.")
+                return
+            for entry in result_json:
+                if "message" in entry:
+                    continue
+                line_number = entry.get("line_number")
+                category = entry.get("category")
+                original_text = entry.get("original_text")
+                suggested_text = entry.get("suggested_text")
+                message = f"**{category.capitalize()}**: `{original_text}`\n**Suggestion**: `{suggested_text}`"
+                self.commenter.post_comment(file_path, line_number, message)
 
-                return self.has_issues
-            else:
-                return False
+                if category == "spelling issue" and self.config["failOnSpelling"]:
+                    self.has_issues = True
+                elif category == "grammar issue" and self.config["failOnGrammar"]:
+                    self.has_issues = True
+                elif category == "both" and self.config["failOnBoth"]:
+                    self.has_issues = True
         except json.JSONDecodeError:
-            return False
+            logging.error(f"Failed to decode JSON: {e}")
 
 def main():
     config = {
