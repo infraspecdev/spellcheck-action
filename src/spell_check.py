@@ -29,15 +29,6 @@ class FileHandler:
             logging.error(f"Error reading file {file_path}: {e}")
             return None
 
-    @staticmethod
-    def save_result(file_path, result):
-        try:
-            with open("spell_check_result_with_lines.json", "a") as result_file:
-                result = result.strip('```json\n```')
-                result_file.write(result + "\n")
-        except Exception as e:
-            logging.error(f"Error saving result for {file_path}: {e}")
-
 class SpellChecker:
     def __init__(self):
         self.api_key = os.getenv("INPUT_OPENAI_API_KEY")
@@ -151,7 +142,6 @@ class SpellCheckProcessor:
                 numbered_content = self.inject_line_numbers(file_lines)
                 result = self.spell_checker.check_spelling_with_line_numbers(numbered_content)
                 if result:
-                    FileHandler.save_result(file_path, result)
                     issues_found = self.post_inline_comments(result, file_path)
                     if issues_found:
                         self.has_issues = True
