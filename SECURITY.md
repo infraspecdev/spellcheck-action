@@ -1,14 +1,14 @@
 # Security
 
-Infraspec takes the security of our software products and services seriously, including all open-source code repositories managed through our GitHub organization, [Infraspec](https://github.com/infraspecdev/).
+Infraspec takes the security of our software products and services seriously, including all open-source code repositories managed through our organization, [Infraspec](https://github.com/infraspecdev/).
 
 If you find any security vulnerabilities in our open source projects, please report them. We will ensure that your findings are passed along to the appropriate maintainers for remediation.
 
 ## Reporting Security Issues
 
-If you believe you have found a security vulnerability in any GitHub-owned repository, please report it to us through coordinated disclosure.
+If you believe you have found a security vulnerability in any Infraspec-owned repository, please report it to us through coordinated disclosure.
 
-**Please do not report security vulnerabilities through public GitHub issues, discussions, or pull requests.**
+**Please do not report security vulnerabilities through public issues, discussions, or pull requests in Infraspec repositories.**
 
 Instead, please send an email to <security@infrapsec.dev>.
 
