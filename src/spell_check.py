@@ -147,14 +147,16 @@ class GitHubPRCommenter:
         response = requests.get(comments_url, headers=self.headers)
         if response.status_code == 200:
             for comment in response.json():
-                delete_url = f"https://api.github.com/repos/{self.repo}/pulls/comments/{comment['id']}"
-                delete_response = requests.delete(delete_url, headers=self.headers)
-                if delete_response.status_code == 204:
-                    logging.info(f"Deleted comment ID {comment['id']}.")
-                else:
-                    logging.error(f"Failed to delete comment ID {comment['id']}: {delete_response.status_code} - {delete_response.text}")
+                if comment['user']['login'] == 'github-actions[bot]':
+                    delete_url = f"https://api.github.com/repos/{self.repo}/pulls/comments/{comment['id']}"
+                    delete_response = requests.delete(delete_url, headers=self.headers)
+                    if delete_response.status_code == 204:
+                        logging.info(f"Deleted comment ID {comment['id']} by github-actions[bot].")
+                    else:
+                        logging.error(f"Failed to delete comment ID {comment['id']}: {delete_response.status_code} - {delete_response.text}")
         else:
             logging.error(f"Failed to get comments: {response.status_code} - {response.text}")
+
 
 class SpellCheckProcessor:
     def __init__(self, config):
