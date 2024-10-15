@@ -1,6 +1,6 @@
 # Security
 
-GitHub takes the security of our software products and services seriously, including all open source code repositories managed through our GitHub organizations, such as [GitHub](https://github.com/infraspecdev/).
+Infraspec takes the security of our software products and services seriously, including all open-source code repositories managed through our GitHub organization, [Infraspec](https://github.com/infraspecdev/).
 
 If you find any security vulnerabilities in our open source projects, please report them. We will ensure that your findings are passed along to the appropriate maintainers for remediation.
 
