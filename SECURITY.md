@@ -2,7 +2,7 @@
 
 GitHub takes the security of our software products and services seriously, including all open source code repositories managed through our GitHub organizations, such as [GitHub](https://github.com/infraspecdev/).
 
-Even though [open source repositories are outside of the scope of our bug bounty program](https://bounty.github.com/index.html#scope) and therefore not eligible for bounty rewards, we will ensure that your finding gets passed along to the appropriate maintainers for remediation.
+If you find any security vulnerabilities in our open source projects, please report them. We will ensure that your findings are passed along to the appropriate maintainers for remediation.
 
 ## Reporting Security Issues
 
