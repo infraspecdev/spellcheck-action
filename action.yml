@@ -51,12 +51,7 @@ inputs:
     description: 'Fail the PR if any grammar errors are found'
     default: false
     type: boolean
-
-  fail_for_all:
-    description: 'Fail the PR if both spelling and grammar errors are found'
-    default: true
-    type: boolean
-
+  
   log_level:
     description: 'Log level for the action (e.g., DEBUG, INFO, WARN, ERROR)'
     default: "ERROR"
