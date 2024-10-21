@@ -244,13 +244,8 @@ class SpellCheckProcessor:
         sys.exit(0)
 
     def post_inline_comments(self, result, file_path):
-        """Post inline comments based on the result from the spell checker."""
-        if not result:
-            logging.error("Result is empty or None. Cannot process JSON.")
-            return
-
         try:
-            result_json = json.loads(result.strip())
+            result_json = json.loads(result.strip('```json\n```'))
             if not isinstance(result_json, list):
                 logging.error("Result is not a list of issues.")
                 return
@@ -258,21 +253,18 @@ class SpellCheckProcessor:
                 if "message" in entry:
                     continue
                 line_number = entry.get("line_number")
+                category = entry.get("category")
                 original_text = entry.get("original_text")
                 suggested_text = entry.get("suggested_text")
-                category = entry.get("category")
-
-                message = (
-                    f"**{category.capitalize()}:** Found '{original_text}' "
-                    f"on line {line_number}. Suggested correction: '{suggested_text}'."
-                )
+                message = f"**{category.capitalize()}**: `{original_text}`\n**Suggestion**: `{suggested_text}`"
                 self.commenter.post_comment(file_path, line_number, message)
-                self.has_issues = True
-            if not self.has_issues:
-                message = "everything looks good to me 🎉"
-                self.commenter.post_comment(file_path, 0, message)
-        except json.JSONDecodeError as e:
-            logging.error("Failed to decode JSON result: %s. Result content: %s", e, result)
+
+                if category == "spelling issue" and self.config.spell_check["failOnSpelling"]:
+                    self.has_issues = True
+                elif category == "grammar issue" and self.config.spell_check["failOnGrammar"]:
+                    self.has_issues = True
+        except json.JSONDecodeError:
+            logging.error(f"Failed to decode JSON: {e}")
 
 def main():
     """Main function to execute the spell-checking process."""
