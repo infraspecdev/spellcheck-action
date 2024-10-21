@@ -244,6 +244,7 @@ class SpellCheckProcessor:
         sys.exit(0)
 
     def post_inline_comments(self, result, file_path):
+        """Post inline comments based on the result from the spell checker."""
         try:
             result_json = json.loads(result.strip('```json\n```'))
             if not isinstance(result_json, list):
@@ -263,8 +264,8 @@ class SpellCheckProcessor:
                     self.has_issues = True
                 elif category == "grammar issue" and self.config.spell_check["failOnGrammar"]:
                     self.has_issues = True
-        except json.JSONDecodeError:
-            logging.error(f"Failed to decode JSON: {e}")
+        except json.JSONDecodeError as error:
+            logging.error(f"Failed to decode JSON: {error}")
 
 def main():
     """Main function to execute the spell-checking process."""
