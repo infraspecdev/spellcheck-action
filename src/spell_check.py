@@ -245,6 +245,10 @@ class SpellCheckProcessor:
 
     def post_inline_comments(self, result, file_path):
         """Post inline comments based on the result from the spell checker."""
+        if not result:
+            logging.error("Result is empty or None. Cannot process JSON.")
+            return
+
         try:
             result_json = json.loads(result.strip())
             if not isinstance(result_json, list):
@@ -268,8 +272,7 @@ class SpellCheckProcessor:
                 message = "everything looks good to me 🎉"
                 self.commenter.post_comment(file_path, 0, message)
         except json.JSONDecodeError as e:
-            logging.error("Failed to decode JSON result: %s", e)
-
+            logging.error("Failed to decode JSON result: %s. Result content: %s", e, result)
 
 def main():
     """Main function to execute the spell-checking process."""
