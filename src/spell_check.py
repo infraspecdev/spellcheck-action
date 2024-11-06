@@ -10,6 +10,7 @@ import logging
 import json
 import requests
 import openai
+from openai import OpenAI
 
 class Config:
     """Configuration class to read and validate environment variables."""
@@ -98,19 +99,17 @@ class SpellChecker:
 
     def __init__(self, config):
         self.config = config
-        openai.api_key = config.openai['api_key']
+        self.client = OpenAI(api_key=config.openai['api_key'])
 
     def check_spelling_with_line_numbers(self, numbered_content):
         """Check spelling and grammar using OpenAI API."""
         try:
-            response = openai.ChatCompletion.create(
+            response = self.client.chat.completions.create(
                 model=self.config.openai['model'],
                 messages=[
                     {
                         "role": "system",
-                        "content": (
-                            "You are a helpful assistant checking spelling and grammar."
-                        )
+                        "content": "You are a helpful assistant checking spelling and grammar."
                     },
                     {
                         "role": "user",
@@ -139,7 +138,7 @@ class SpellChecker:
                 ],
                 max_tokens=self.config.openai['max_tokens']
             )
-            return response['choices'][0]['message']['content']
+            return response.choices[0].message.content
         except Exception as e:
             logging.error("Error during OpenAI API request: %s", e)
             return None

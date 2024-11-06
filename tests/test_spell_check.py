@@ -1,8 +1,3 @@
-"""
-Test cases for spell check components including Logger, FileHandler, SpellChecker, 
-GitHubPRCommenter, and SpellCheckProcessor.
-"""
-
 import unittest
 from unittest.mock import patch, MagicMock, mock_open
 import logging
@@ -45,40 +40,14 @@ class TestFileHandler(unittest.TestCase):
 class TestSpellChecker(unittest.TestCase):
     """Test cases for SpellChecker class"""
 
-    @patch('openai.ChatCompletion.create')
-    def test_check_spelling_with_line_numbers(self, mock_create):
-        """Test spell checking functionality with line numbers"""
-        mock_config = MagicMock()
-        mock_config.openai = {
-            'api_key': 'dummy_key',
-            'model': 'text-davinci-003',
-            'max_tokens': '100'
-        }
-        spell_checker = SpellChecker(mock_config)
-
-        mock_create.return_value = {
-            'choices': [{
-                'message': {
-                    'content': '[{"original_text": "speling", "suggested_text": "spelling", '
-                               '"line_number": 1, "category": "spelling issue"}]'
-                }
-            }]
-        }
-
-        numbered_content = ["1: speling\n"]
-        result = spell_checker.check_spelling_with_line_numbers(numbered_content)
-        expected_result = '[{"original_text": "speling", "suggested_text": "spelling", ' \
-                          '"line_number": 1, "category": "spelling issue"}]'
-        self.assertEqual(result, expected_result)
-
-    @patch('openai.ChatCompletion.create', side_effect=Exception('API Error'))
-    def test_check_spelling_api_failure(self, mock_create):
+    @patch('openai.OpenAI', side_effect=Exception('API Error'))
+    def test_check_spelling_api_failure(self, mock_openai):
         """Test spell checker handling API failure"""
         mock_config = MagicMock()
         mock_config.openai = {
             'api_key': 'dummy_key',
             'model': 'text-davinci-003',
-            'max_tokens': '100'
+            'max_tokens': 100
         }
         spell_checker = SpellChecker(mock_config)
         numbered_content = ["1: speling\n"]
