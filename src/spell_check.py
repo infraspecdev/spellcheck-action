@@ -98,12 +98,12 @@ class SpellChecker:
 
     def __init__(self, config):
         self.config = config
-        self.client = openai.OpenAI(api_key=config.openai['api_key'])
+        openai.api_key = self.config.openai['api_key']
 
     def check_spelling_with_line_numbers(self, numbered_content):
         """Check spelling and grammar using OpenAI API."""
         try:
-            response = self.client.chat.completions.create(
+            response = openai.completions.create(
                 model=self.config.openai['model'],
                 messages=[
                     {
