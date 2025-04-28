@@ -17,3 +17,7 @@ updates:
     schedule:
       # Check for updates to GitHub Actions every week
       interval: "weekly"
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-patch"]
+      
