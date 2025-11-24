@@ -1,2 +1,2 @@
-openai==1.75.0
+openai==2.8.1
 requests>=2.32.0
